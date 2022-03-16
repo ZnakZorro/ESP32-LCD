@@ -11,3 +11,10 @@
 
 https://github.com/lvgl/lvgl/releases
 
+<hr>
+<img src="https://raw.githubusercontent.com/ZnakZorro/LCD480x320/main/WT32-SC01/WT32.jpg" />
+<br />
+<img src="WT32.jpg" />
+<br />
+
+
