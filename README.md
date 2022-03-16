@@ -1,0 +1,2 @@
+# LCD480x320
+WT32-SC01 with LVGL
