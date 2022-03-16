@@ -16,5 +16,7 @@ https://github.com/lvgl/lvgl/releases
 <br />
 <img src="WT32.jpg" />
 <br />
+<img src="WT32g.jpg" />
+<br />
 
 
