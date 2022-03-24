@@ -119,15 +119,13 @@ String httpGETRequest(const char* serverName) {
   return payload;
 }
 
-void SetDefaultLabels(){
+void SetDefaultLabels(int start){
   //Serial.println("\n***");
-    for (int8_t i=0; i<4; i++){
+    for (int8_t i=0+start; i<4+start; i++){
       lv_obj_t *label = lv_obj_get_child(klawisze[i].btn, 0);
-      //Serial.print(i);Serial.println(klawisze[i].labelka);
       lv_label_set_text_fmt(label, klawisze[i].labelka);
       lv_obj_set_style_bg_color(klawisze[i].btn, lv_palette_main(LV_PALETTE_BLUE), 0);
       lv_obj_set_style_text_color(klawisze[i].btn, lv_palette_main(LV_PALETTE_YELLOW), 0);
-
     }
 }
 
@@ -135,18 +133,21 @@ void setESCInfo(String str){
       lv_obj_t *label = lv_obj_get_child(klawisze[0].btn, 0);
       lv_label_set_text_fmt(label, +"%s%s\n%s%s", "#000000 ","WiFi",str,"dB");
       lv_obj_set_style_bg_color(klawisze[0].btn, lv_palette_main(LV_PALETTE_RED), 0);
-      lv_obj_set_style_text_color(klawisze[0].btn, lv_palette_main(LV_PALETTE_NONE), 0);
-      
+      lv_obj_set_style_text_color(klawisze[0].btn, lv_palette_main(LV_PALETTE_NONE), 0); 
 }
 
 void setKeyInfo(String str){
       lv_obj_t *label = lv_obj_get_child(klawisze[actualRadio+1].btn, 0);
       lv_label_set_text_fmt(label, +"%s%s\n%s", "#000000 ",klawisze[actualRadio+1].labelka,str);
       lv_obj_set_style_bg_color(klawisze[actualRadio+1].btn, lv_palette_main(LV_PALETTE_AMBER), 0);
-      lv_obj_set_style_text_color(klawisze[actualRadio+1].btn, lv_palette_main(LV_PALETTE_BLUE_GREY), 0);
-      
+      lv_obj_set_style_text_color(klawisze[actualRadio+1].btn, lv_palette_main(LV_PALETTE_BLUE_GREY), 0);   
 }
-
+void setActiveRadio(String l0){
+      int8_t radioNR = l0.toInt()+8;
+      Serial.print("radioNR=");Serial.println(radioNR);
+      lv_obj_set_style_bg_color(klawisze[radioNR].btn, lv_palette_main(LV_PALETTE_DEEP_PURPLE), 0);
+      //lv_obj_set_style_text_color(klawisze[radioNR].btn, lv_palette_main(LV_PALETTE_NONE), 0);  
+}
 void getInfo(){
   sendGET(radia[actualRadio].url+"radio?n=0");
 }
@@ -163,14 +164,13 @@ void sendGET(String serverPath){
       String l3 = splitValue(jsonBuffer,'!',3); // 
       String l4 = splitValue(jsonBuffer,'!',4);
 
-      SetDefaultLabels();
-      setKeyInfo("  $"+l0+"  %"+l1);  // #station %volume
-      setESCInfo(l2);    // RSSI
-      //Serial.println(l0);
-      //Serial.println(l1);
-      //Serial.println(l2);
-      //Serial.println(l3);
-      //Serial.println(l4);
+      SetDefaultLabels(0);
+      SetDefaultLabels(8);
+      if (l0 != " ") {
+        setKeyInfo("  $"+l0+"  %"+l1);  // #station %volume
+        setESCInfo(l2);    // RSSI
+        setActiveRadio(l0); 
+      }
       jsonBuffer = " * "+radia[actualRadio].name+" * "+l2+"% * #"+l0+" * "+l1+"dB * "+l3+" * "+l4;
       jsonBuffer = radia[actualRadio].name+" * "+l3+" * "+l4;
       
@@ -200,8 +200,8 @@ void sendGET(String serverPath){
 }
 
 static void connectWIFI(){
-Serial.println(ESP.getFreeHeap());
-Serial.printf_P(PSTR("Free mem=%d\n"), ESP.getFreeHeap());
+    Serial.println(ESP.getFreeHeap());
+    Serial.printf_P(PSTR("Free mem=%d\n"), ESP.getFreeHeap());
 
     //WiFi.mode(WIFI_OFF);
     //WiFi.disconnect();
@@ -214,13 +214,15 @@ Serial.printf_P(PSTR("Free mem=%d\n"), ESP.getFreeHeap());
     lcd.printf("WiFi Start ");      
     while(wifiMulti.run() != WL_CONNECTED) {
       Serial.print("*");
-      licznik++;
       Serial.println("WiFi::"+String(licznik));
       delay(333);
-      if (licznik>50) ESP.restart();
+      if (licznik%50==49) ESP.restart();
       lcd.print("*");
-      //lcd.printf("*:(%03d)", licznik);
-      } 
+      licznik++;
+      if (licznik>200){
+        break;
+      }
+    } 
     Serial.printf_P(PSTR("Connected\r\nRSSI: "));
     Serial.print("WiFi.status="); Serial.println(WiFi.status());
     Serial.print("WiFi.RSSI=");   Serial.println(WiFi.RSSI());
@@ -231,7 +233,7 @@ Serial.printf_P(PSTR("Free mem=%d\n"), ESP.getFreeHeap());
     //lcd.printf("id:%s",String(WiFi.SSID()));
     lcd.print(" IP:"); lcd.print((WiFi.localIP()));
     lcd.print(" ID:"); lcd.print((WiFi.SSID()));
-    lcd.print(" ----------");
+    lcd.print("  ");
     //lcd.printf("IP:%s",String(WiFi.localIP()));
     
     
